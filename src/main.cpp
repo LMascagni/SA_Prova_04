@@ -12,10 +12,12 @@ FastAccelStepper *stepper = NULL;
 #define M1 22
 #define M2 23
 
-int microstep;
+typedef enum{Stop, Start, Ack}stati;
+stati Stato;
 
-void IRAM_ATTR interruptStop();
-bool stopped = false;
+int microstep;
+volatile bool stopped = false;
+volatile int32_t currentPosition;
 
 bool setStep(int steps_in)
 {
@@ -32,6 +34,16 @@ int angleToStep(int angle)
    return int(200 * microstep * (angle / 360.0));
 }
 
+void moveStepper(int angle, float speed, float acceleration, int microsteps) {
+   stepper->setDirectionPin(dirPinStepper);
+   stepper->setEnablePin(enablePinStepper);
+   stepper->setAutoEnable(true);
+   stepper->setSpeedInHz(speed);
+   stepper->setAcceleration(acceleration);
+   setStep(microsteps);
+   stepper->moveTo(angleToStep(angle), true);
+}
+
 void IRAM_ATTR interruptStop()
 {
    stepper->forceStop();
@@ -45,44 +57,37 @@ void IRAM_ATTR interruptAck()
 
 void setup()
 {
-   Serial.begin(115200);
    pinMode(M0, OUTPUT);
    pinMode(M1, OUTPUT);
    pinMode(M2, OUTPUT);
+
+   Serial.begin(115200);
+   
    engine.init();
    stepper = engine.stepperConnectToPin(stepPinStepper);
+   
    pinMode(15, INPUT_PULLUP);
    attachInterrupt(15, interruptStop, FALLING);
    pinMode(4, INPUT_PULLUP);
    attachInterrupt(4, interruptAck, FALLING);
+
+   Stato = Stop;
 }
 
-void loop()
-{
-   if (stepper && !stopped)
+void loop() {
+   switch (Stato)
    {
-      stepper->setDirectionPin(dirPinStepper);
-      stepper->setEnablePin(enablePinStepper);
-      stepper->setAutoEnable(true);
-      stepper->setSpeedInHz(500);
-      stepper->setAcceleration(100);
-      setStep(4);
-      stepper->moveTo(angleToStep(360), true);
-
-      if (!stopped)
-      {
-         stepper->setSpeedInHz(500);
-         stepper->setAcceleration(200);
-         setStep(4);
-         stepper->moveTo(angleToStep(-360), true);
-      }
-
-      if (!stopped)
-      {
-         stepper->setSpeedInHz(1000);
-         stepper->setAcceleration(200);
-         setStep(4);
-         stepper->moveTo(angleToStep(0), true);
-      }
+      case Stop:
+         if (!stopped){
+            Stato = Ack;
+         }
+         break;
+      case Start:
+         moveStepper(1800, 500, 100, 4);
+         moveStepper(-1800, 500, 200, 4);
+         moveStepper(0, 1000, 200, 8);
+         break;
+      default:
+         break;
    }
 }
