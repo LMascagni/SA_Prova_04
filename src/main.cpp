@@ -31,11 +31,9 @@ int angleToStep(int angle)
 }
 
 void moveStepper(int angle, float speed, float acceleration, int microsteps) {
-   stepper->setDirectionPin(dirPinStepper);
-   stepper->setEnablePin(enablePinStepper);
-   stepper->setAutoEnable(true);
-   stepper->setSpeedInHz(speed);
-   stepper->setAcceleration(acceleration);
+   while(stopped){}
+   stepper->setSpeedInHz(speed*microsteps);
+   stepper->setAcceleration(acceleration*microsteps);
    setStep(microsteps);
    stepper->moveTo(angleToStep(angle), true);
 }
@@ -57,19 +55,26 @@ void setup()
    pinMode(M1, OUTPUT);
    pinMode(M2, OUTPUT);
 
-   Serial.begin(115200);
-   
-   engine.init();
-   stepper = engine.stepperConnectToPin(stepPinStepper);
-   
    pinMode(15, INPUT_PULLUP);
    attachInterrupt(15, interruptStop, FALLING);
    pinMode(4, INPUT_PULLUP);
    attachInterrupt(4, interruptAck, FALLING);
+
+   Serial.begin(115200);
+   
+   engine.init();
+   stepper = engine.stepperConnectToPin(stepPinStepper);
+   stepper->setDirectionPin(dirPinStepper);
+   stepper->setEnablePin(enablePinStepper);
+   stepper->setAutoEnable(true);
+   
 }
 
 void loop() {
-   moveStepper(1800, 500, 100, 4);
-   moveStepper(-1800, 500, 200, 4);
-   moveStepper(0, 1000, 200, 8);
+   Serial.println("movimento 1");
+   moveStepper(7200, 500, 100, 4);//ang, vel, acc, mic
+   Serial.println("movimento 2");
+   moveStepper(-7200, 500, 200, 4);
+   Serial.println("movimento 3");
+   moveStepper(3600, 1000, 200, 8);
 }
