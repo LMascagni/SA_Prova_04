@@ -12,12 +12,8 @@ FastAccelStepper *stepper = NULL;
 #define M1 22
 #define M2 23
 
-typedef enum{Stop, Start, Ack}stati;
-stati Stato;
-
 int microstep;
 volatile bool stopped = false;
-volatile int32_t currentPosition;
 
 bool setStep(int steps_in)
 {
@@ -70,24 +66,10 @@ void setup()
    attachInterrupt(15, interruptStop, FALLING);
    pinMode(4, INPUT_PULLUP);
    attachInterrupt(4, interruptAck, FALLING);
-
-   Stato = Stop;
 }
 
 void loop() {
-   switch (Stato)
-   {
-      case Stop:
-         if (!stopped){
-            Stato = Ack;
-         }
-         break;
-      case Start:
-         moveStepper(1800, 500, 100, 4);
-         moveStepper(-1800, 500, 200, 4);
-         moveStepper(0, 1000, 200, 8);
-         break;
-      default:
-         break;
-   }
+   moveStepper(1800, 500, 100, 4);
+   moveStepper(-1800, 500, 200, 4);
+   moveStepper(0, 1000, 200, 8);
 }
