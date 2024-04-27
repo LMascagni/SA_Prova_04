@@ -21,7 +21,7 @@ private:
 
     // Private helper functions (optional for better organization)
     void configurePins();
-    void configureStepper();
+    void configureStepper(float speed, float acceleration);
 };
 
 #endif

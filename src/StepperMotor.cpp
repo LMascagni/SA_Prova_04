@@ -16,7 +16,7 @@ int StepperMotor::angleToStep(int angle) {
 
 void StepperMotor::moveStepper(int angle, float speed, float acceleration) {
     configurePins();  // Ensure pins are set correctly
-    configureStepper();  // Set direction, enable (if provided), speed, and acceleration
+    configureStepper(speed, acceleration);  // Set direction, enable (if provided), speed, and acceleration
 
     stepper->moveTo(angleToStep(angle), true);  // Move and block until complete
 }
@@ -29,7 +29,7 @@ void StepperMotor::configurePins() {
     }
 }
 
-void StepperMotor::configureStepper() {
+void StepperMotor::configureStepper(float speed, float acceleration) {
     stepper->setDirectionPin(dirPin);
     if (enablePin >= 0) {
         stepper->setEnablePin(enablePin);
