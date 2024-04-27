@@ -4,6 +4,8 @@
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *stepper = NULL;
 
+void(* resetFunc) (void) = 0;
+
 #define dirPinStepper 18
 #define enablePinStepper 16
 #define stepPinStepper 17
@@ -47,6 +49,7 @@ void IRAM_ATTR interruptStop()
 void IRAM_ATTR interruptAck()
 {
    stopped = false;
+   resetFunc();
 }
 
 void setup()
